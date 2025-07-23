@@ -1,0 +1,114 @@
+// Project: Healthcare Appointment Booking Portal (Backend - Spring Boot)
+
+package com.example.healthcare;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class HealthcareApp {
+    public static void main(String[] args) {
+        SpringApplication.run(HealthcareApp.class, args);
+    }
+}
+
+// --- Entity: Appointment.java ---
+package com.example.healthcare.entity;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+public class Appointment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String patientName;
+    private String doctorName;
+    private LocalDateTime appointmentTime;
+
+    // Getters and Setters
+}
+
+// --- Repository: AppointmentRepository.java ---
+package com.example.healthcare.repository;
+
+import com.example.healthcare.entity.Appointment;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+    List<Appointment> findByDoctorName(String doctorName);
+}
+
+// --- Controller: AppointmentController.java ---
+package com.example.healthcare.controller;
+
+import com.example.healthcare.entity.Appointment;
+import com.example.healthcare.repository.AppointmentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/appointments")
+@CrossOrigin(origins = "http://localhost:3000")
+public class AppointmentController {
+
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
+    @GetMapping
+    public List<Appointment> getAllAppointments() {
+        return appointmentRepository.findAll();
+    }
+
+    @GetMapping("/doctor/{name}")
+    public List<Appointment> getAppointmentsByDoctor(@PathVariable String name) {
+        return appointmentRepository.findByDoctorName(name);
+    }
+
+    @PostMapping
+    public Appointment createAppointment(@RequestBody Appointment appointment) {
+        return appointmentRepository.save(appointment);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteAppointment(@PathVariable Long id) {
+        appointmentRepository.deleteById(id);
+    }
+}
+
+// React Frontend (as comment)
+/*
+// src/components/AppointmentForm.js
+import React, { useState } from 'react';
+import axios from 'axios';
+
+function AppointmentForm() {
+  const [form, setForm] = useState({ patientName: '', doctorName: '', appointmentTime: '' });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    axios.post('http://localhost:8080/api/appointments', form).then(() => alert('Appointment Booked'));
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="patientName" onChange={handleChange} placeholder="Patient Name" />
+      <input name="doctorName" onChange={handleChange} placeholder="Doctor Name" />
+      <input name="appointmentTime" onChange={handleChange} placeholder="YYYY-MM-DDTHH:MM" type="datetime-local" />
+      <button type="submit">Book Appointment</button>
+    </form>
+  );
+}
+
+export default AppointmentForm;
+*/
